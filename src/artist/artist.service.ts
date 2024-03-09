@@ -26,7 +26,7 @@ export class ArtistService {
     }
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
-      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
+      throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
     return artist;
   }
@@ -37,7 +37,7 @@ export class ArtistService {
     }
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
-      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
+      throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
     const index = this.artists.findIndex((artist) => artist.id === id);
     this.artists[index] = {
@@ -53,7 +53,7 @@ export class ArtistService {
     }
     const artist = this.artists.find((artist) => artist.id === id);
     if (!artist) {
-      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
+      throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
     const index = this.artists.findIndex((user) => user.id === id);
     this.artists.splice(index, 1);
