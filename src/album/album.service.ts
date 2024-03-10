@@ -4,17 +4,22 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
 import { TrackService } from '../track/track.service';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class AlbumService {
-  private readonly albums: Album[] = [];
-  constructor(private readonly trackService: TrackService) {}
+  private readonly albums = this.databaseService.getAlbums();
+  constructor(
+    private readonly trackService: TrackService,
+    private readonly databaseService: DatabaseService,
+  ) {}
   create(createAlbumDto: CreateAlbumDto) {
     const album: Album = {
       id: uuid4(),
       ...createAlbumDto,
     };
     this.albums.push(album);
+    this.databaseService.updateAlbums(this.albums);
     return album;
   }
 
@@ -46,6 +51,7 @@ export class AlbumService {
       ...album,
       ...updateAlbumDto,
     };
+    this.databaseService.updateAlbums(this.albums);
     return this.albums[index];
   }
 
@@ -61,6 +67,7 @@ export class AlbumService {
     this.updateTracks(albumId);
     const index = this.albums.findIndex((album) => album.id === id);
     this.albums.splice(index, 1);
+    this.databaseService.updateAlbums(this.albums);
     return { deleted: true };
   }
 

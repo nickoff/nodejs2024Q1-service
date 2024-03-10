@@ -4,10 +4,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { validate, v4 as uuid4 } from 'uuid';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class UserService {
-  private readonly users: User[] = [];
+  private users = this.databaseService.getUsers();
+
+  constructor(private readonly databaseService: DatabaseService) {}
 
   create(createUserDto: CreateUserDto) {
     const user = {
@@ -18,6 +21,7 @@ export class UserService {
       updatedAt: Date.now(),
     };
     this.users.push(user);
+    this.databaseService.updateUser(this.users);
     const { password: _, ...result } = user;
     return result;
   }
@@ -59,6 +63,7 @@ export class UserService {
     this.users[index].password = updateUserDto.newPassword;
     this.users[index].updatedAt = Date.now();
     this.users[index].version += 1;
+    this.databaseService.updateUser(this.users);
     const { password: _, ...result } = this.users[index];
     return result;
   }
@@ -73,6 +78,7 @@ export class UserService {
     }
     const index = this.users.findIndex((user) => user.id === id);
     this.users.splice(index, 1);
+    this.databaseService.updateUser(this.users);
     return { deleted: true };
   }
 }

@@ -3,10 +3,12 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { Track } from './entities/track.entity';
 import { validate, v4 as uuid4 } from 'uuid';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class TrackService {
-  private readonly tracks: Track[] = [];
+  private readonly tracks = this.databaseService.getTracks();
+  constructor(private readonly databaseService: DatabaseService) {}
   create(createTrackDto: CreateTrackDto) {
     const track: Track = {
       id: uuid4(),
@@ -14,6 +16,7 @@ export class TrackService {
     };
 
     this.tracks.push(track);
+    this.databaseService.updateTracks(this.tracks);
     return track;
   }
 
@@ -45,6 +48,7 @@ export class TrackService {
       ...track,
       ...updateTrackDto,
     };
+    this.databaseService.updateTracks(this.tracks);
     return this.tracks[index];
   }
 
@@ -58,6 +62,7 @@ export class TrackService {
     }
     const index = this.tracks.findIndex((track) => track.id === id);
     this.tracks.splice(index, 1);
+    this.databaseService.updateTracks(this.tracks);
     return { deleted: true };
   }
 }

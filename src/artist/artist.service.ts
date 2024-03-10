@@ -1,17 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { Artist } from './entities/artist.entity';
 import { validate, v4 as uuid4 } from 'uuid';
 import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class ArtistService {
-  private readonly artists: Artist[] = [];
+  private readonly artists = this.databaseService.getArtists();
   constructor(
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
+    private readonly databaseService: DatabaseService,
   ) {}
   create(createArtistDto: CreateArtistDto) {
     const artist = {
@@ -19,6 +20,7 @@ export class ArtistService {
       ...createArtistDto,
     };
     this.artists.push(artist);
+    this.databaseService.updateArtists(this.artists);
     return artist;
   }
 
@@ -50,6 +52,7 @@ export class ArtistService {
       ...artist,
       ...updateArtistDto,
     };
+    this.databaseService.updateArtists(this.artists);
     return this.artists[index];
   }
 
@@ -66,6 +69,7 @@ export class ArtistService {
     this.updateTracks(artistId);
     const index = this.artists.findIndex((artist) => artist.id === id);
     this.artists.splice(index, 1);
+    this.databaseService.updateArtists(this.artists);
     return { deleted: true };
   }
 
