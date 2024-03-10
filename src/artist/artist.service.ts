@@ -3,10 +3,16 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { Artist } from './entities/artist.entity';
 import { validate, v4 as uuid4 } from 'uuid';
+import { AlbumService } from '../album/album.service';
+import { TrackService } from '../track/track.service';
 
 @Injectable()
 export class ArtistService {
   private readonly artists: Artist[] = [];
+  constructor(
+    private readonly albumService: AlbumService,
+    private readonly trackService: TrackService,
+  ) {}
   create(createArtistDto: CreateArtistDto) {
     const artist = {
       id: uuid4(),
@@ -55,8 +61,39 @@ export class ArtistService {
     if (!artist) {
       throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
-    const index = this.artists.findIndex((user) => user.id === id);
+    const artistId = artist.id;
+    this.updateAlbums(artistId);
+    this.updateTracks(artistId);
+    const index = this.artists.findIndex((artist) => artist.id === id);
     this.artists.splice(index, 1);
     return { deleted: true };
+  }
+
+  private updateAlbums(artistId: string) {
+    const albumIds = this.albumService
+      .findAll()
+      .filter((album) => album.artistId === artistId)
+      .map((album) => album.id);
+    albumIds.forEach((albumId) => {
+      const album = this.albumService.findOne(albumId);
+      this.albumService.update(albumId, {
+        ...album,
+        artistId: null,
+      });
+    });
+  }
+
+  private updateTracks(artistId: string) {
+    const trackIds = this.trackService
+      .findAll()
+      .filter((track) => track.artistId === artistId)
+      .map((track) => track.id);
+    trackIds.forEach((trackId) => {
+      const track = this.trackService.findOne(trackId);
+      this.trackService.update(trackId, {
+        ...track,
+        artistId: null,
+      });
+    });
   }
 }
