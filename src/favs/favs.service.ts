@@ -1,24 +1,15 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Album } from '../album/entities/album.entity';
-import { Artist } from '../artist/entities/artist.entity';
-import { Track } from '../track/entities/track.entity';
 import { validate } from 'uuid';
-import { AlbumService } from '../album/album.service';
-import { TrackService } from '../track/track.service';
-import { ArtistService } from '../artist/artist.service';
 import { Favorites } from './entities/favs.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class FavsService {
-  private readonly tracks: Track[] = [];
-  private readonly artists: Artist[] = [];
-  private readonly albums: Album[] = [];
+  private readonly tracks = this.databaseService.getFavorites().tracks;
+  private readonly artists = this.databaseService.getFavorites().artists;
+  private readonly albums = this.databaseService.getFavorites().albums;
 
-  constructor(
-    private readonly albumService: AlbumService,
-    private readonly trackService: TrackService,
-    private readonly artistService: ArtistService,
-  ) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   findAll(): Favorites {
     return { artists: this.artists, albums: this.albums, tracks: this.tracks };
@@ -28,7 +19,9 @@ export class FavsService {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const track = this.trackService.findAll().find((track) => track.id === id);
+    const track = this.databaseService
+      .getTracks()
+      .find((track) => track.id === id);
     if (!track) {
       throw new HttpException(
         'Not found track',
@@ -36,6 +29,11 @@ export class FavsService {
       );
     }
     this.tracks.push(track);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return track;
   }
 
@@ -43,8 +41,8 @@ export class FavsService {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const artist = this.artistService
-      .findAll()
+    const artist = this.databaseService
+      .getArtists()
       .find((artist) => artist.id === id);
     if (!artist) {
       throw new HttpException(
@@ -53,6 +51,11 @@ export class FavsService {
       );
     }
     this.artists.push(artist);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return artist;
   }
 
@@ -60,7 +63,9 @@ export class FavsService {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const album = this.albumService.findAll().find((album) => album.id === id);
+    const album = this.databaseService
+      .getAlbums()
+      .find((album) => album.id === id);
     if (!album) {
       throw new HttpException(
         'Not found album',
@@ -68,6 +73,11 @@ export class FavsService {
       );
     }
     this.albums.push(album);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return album;
   }
 
@@ -81,6 +91,11 @@ export class FavsService {
     }
     const index = this.tracks.findIndex((track) => track.id === id);
     this.tracks.splice(index, 1);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return { deleted: true };
   }
 
@@ -94,6 +109,11 @@ export class FavsService {
     }
     const index = this.artists.findIndex((artist) => artist.id === id);
     this.artists.splice(index, 1);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return { deleted: true };
   }
 
@@ -107,6 +127,11 @@ export class FavsService {
     }
     const index = this.albums.findIndex((album) => album.id === id);
     this.albums.splice(index, 1);
+    this.databaseService.updateFavorites(
+      this.artists,
+      this.albums,
+      this.tracks,
+    );
     return { deleted: true };
   }
 }

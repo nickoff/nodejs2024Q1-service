@@ -37,8 +37,8 @@ export class DatabaseService {
     return this.favorites;
   }
 
-  updateArtists(artists?: Artist[], albums?: Album[], tracks?: Track[]) {
-    this.favorites = { ...this.favorites, artists, albums, tracks };
+  updateArtists(artists: Artist[]) {
+    this.artists = [...artists];
   }
 
   updateUser(users: User[]) {
@@ -53,7 +53,7 @@ export class DatabaseService {
     this.tracks = [...tracks];
   }
 
-  updateFavorites(favorites: Favorites) {
-    this.favorites = { ...favorites };
+  updateFavorites(artists?: Artist[], albums?: Album[], tracks?: Track[]) {
+    this.favorites = { ...this.favorites, artists, albums, tracks };
   }
 }
