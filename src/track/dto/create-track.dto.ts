@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateTrackDto {
   @IsString()
@@ -6,10 +6,12 @@ export class CreateTrackDto {
 
   @IsOptional()
   @IsString()
+  @IsUUID()
   readonly artistId: string | null;
 
   @IsOptional()
   @IsString()
+  @IsUUID()
   readonly albumId: string | null;
 
   @IsNumber()
