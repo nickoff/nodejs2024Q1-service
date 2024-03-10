@@ -3,10 +3,12 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
+import { TrackService } from '../track/track.service';
 
 @Injectable()
 export class AlbumService {
   private readonly albums: Album[] = [];
+  constructor(private readonly trackService: TrackService) {}
   create(createAlbumDto: CreateAlbumDto) {
     const album: Album = {
       id: uuid4(),
@@ -55,8 +57,24 @@ export class AlbumService {
     if (!album) {
       throw new HttpException('Not found album', HttpStatus.NOT_FOUND);
     }
+    const albumId = album.id;
+    this.updateTracks(albumId);
     const index = this.albums.findIndex((album) => album.id === id);
     this.albums.splice(index, 1);
     return { deleted: true };
+  }
+
+  private updateTracks(albumId: string) {
+    const trackIds = this.trackService
+      .findAll()
+      .filter((track) => track.albumId === albumId)
+      .map((track) => track.id);
+    trackIds.forEach((trackId) => {
+      const track = this.trackService.findOne(trackId);
+      this.trackService.update(trackId, {
+        ...track,
+        albumId: null,
+      });
+    });
   }
 }
