@@ -4,11 +4,15 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 import { Track } from './entities/track.entity';
 import { validate, v4 as uuid4 } from 'uuid';
 import { DatabaseService } from '../database/database.service';
+import { FavsService } from '../favs/favs.service';
 
 @Injectable()
 export class TrackService {
   private readonly tracks = this.databaseService.getTracks();
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly favsService: FavsService,
+  ) {}
   create(createTrackDto: CreateTrackDto) {
     const track: Track = {
       id: uuid4(),
@@ -63,6 +67,12 @@ export class TrackService {
     const index = this.tracks.findIndex((track) => track.id === id);
     this.tracks.splice(index, 1);
     this.databaseService.updateTracks(this.tracks);
+    const favoritesTrack = this.favsService
+      .findAll()
+      .tracks.find((track) => track.id === id);
+    if (favoritesTrack) {
+      this.favsService.deleteTrack(id);
+    }
     return { deleted: true };
   }
 }

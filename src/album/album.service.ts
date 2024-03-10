@@ -5,6 +5,7 @@ import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
 import { TrackService } from '../track/track.service';
 import { DatabaseService } from '../database/database.service';
+import { FavsService } from '../favs/favs.service';
 
 @Injectable()
 export class AlbumService {
@@ -12,6 +13,7 @@ export class AlbumService {
   constructor(
     private readonly trackService: TrackService,
     private readonly databaseService: DatabaseService,
+    private readonly favsService: FavsService,
   ) {}
   create(createAlbumDto: CreateAlbumDto) {
     const album: Album = {
@@ -68,6 +70,12 @@ export class AlbumService {
     const index = this.albums.findIndex((album) => album.id === id);
     this.albums.splice(index, 1);
     this.databaseService.updateAlbums(this.albums);
+    const favoritesAlbum = this.favsService
+      .findAll()
+      .albums.find((album) => album.id === id);
+    if (favoritesAlbum) {
+      this.favsService.deleteAlbum(id);
+    }
     return { deleted: true };
   }
 
