@@ -14,7 +14,7 @@ git clone https://github.com/nickoff/nodejs2024Q1-service.git
 ## Installing NPM modules
 
 ```
-npm install
+npm install --legacy-peer-deps
 ```
 
 ## Running application
