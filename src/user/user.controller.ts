@@ -122,7 +122,7 @@ export class UserController {
   })
   @ApiResponse({
     status: 204,
-    description: 'Request is valid. User is deleted.',
+    description: 'Request is valid. Record is deleted.',
     type: Boolean,
     schema: {
       $ref: getSchemaPath('true'),
