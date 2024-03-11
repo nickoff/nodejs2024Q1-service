@@ -10,7 +10,10 @@ export class CreateAlbumDto {
   @IsNumber()
   readonly year: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: String || null,
+    format: 'uuid',
+  })
   @IsOptional()
   @IsString()
   @IsUUID()

@@ -12,7 +12,10 @@ export class UpdateAlbumDto extends PartialType(CreateAlbumDto) {
   @IsNumber()
   readonly year: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: String,
+    format: 'uuid',
+  })
   @IsOptional()
   @IsString()
   @IsUUID()

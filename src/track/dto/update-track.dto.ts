@@ -8,13 +8,19 @@ export class UpdateTrackDto extends PartialType(CreateTrackDto) {
   @IsString()
   readonly name: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: String || null,
+    format: 'uuid',
+  })
   @IsOptional()
   @IsString()
   @IsUUID()
   readonly artistId: string | null;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: String || null,
+    format: 'uuid',
+  })
   @IsOptional()
   @IsString()
   @IsUUID()
