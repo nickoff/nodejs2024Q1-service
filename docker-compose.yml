@@ -1,0 +1,19 @@
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  database-postgres:
+
+services:
+  app:
+    container_name: hls-api-service
+    image: nickoff/hls-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    env_file:
+      - .env

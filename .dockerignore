@@ -1,0 +1,11 @@
+/dist
+/node_modules
+/database
+/test
+/doc
+.env
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
