@@ -3,6 +3,7 @@
 /database
 /test
 /doc
+/migrations
 .env
 .git
 .gitignore
