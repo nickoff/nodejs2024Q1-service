@@ -22,11 +22,11 @@ export class User {
   version: number;
 
   @ApiProperty()
-  @Column()
+  @Column('bigint')
   createdAt: number;
 
   @ApiProperty()
-  @Column()
+  @Column('bigint')
   updatedAt: number;
 
   getUser() {
