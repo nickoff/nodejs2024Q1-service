@@ -6,79 +6,94 @@ import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
 import { DatabaseService } from '../database/database.service';
 import { FavsService } from '../favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Artist } from './entities/artist.entity';
 
 @Injectable()
 export class ArtistService {
-  private readonly artists = this.databaseService.getArtists();
   constructor(
+    @InjectRepository(Artist)
+    private artistsRepository: Repository<Artist>,
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
     private readonly databaseService: DatabaseService,
     private readonly favsService: FavsService,
   ) {}
-  create(createArtistDto: CreateArtistDto) {
+  async create(createArtistDto: CreateArtistDto) {
     const artist = {
       id: uuid4(),
       ...createArtistDto,
     };
-    this.artists.push(artist);
-    this.databaseService.updateArtists(this.artists);
-    return artist;
+
+    const newArtist = this.artistsRepository.create(artist);
+    return await this.artistsRepository.save(newArtist);
   }
 
-  findAll() {
-    return this.artists;
+  async findAll() {
+    return await this.artistsRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const artist = this.artists.find((artist) => artist.id === id);
+    const artist = await this.artistsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!artist) {
       throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const artist = this.artists.find((artist) => artist.id === id);
+    const artist = await this.artistsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!artist) {
       throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    this.artists[index] = {
-      ...artist,
-      ...updateArtistDto,
-    };
-    this.databaseService.updateArtists(this.artists);
-    return this.artists[index];
+
+    artist.name = updateArtistDto.name;
+    artist.grammy = updateArtistDto.grammy;
+
+    return await this.artistsRepository.save(artist);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const artist = this.artists.find((artist) => artist.id === id);
+    const artist = await this.artistsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!artist) {
       throw new HttpException('Not found artist', HttpStatus.NOT_FOUND);
     }
+
+    await this.artistsRepository.delete(id);
     const artistId = artist.id;
     this.updateAlbums(artistId);
     this.updateTracks(artistId);
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    this.artists.splice(index, 1);
-    this.databaseService.updateArtists(this.artists);
     const favoritesArtist = this.favsService
       .findAll()
       .artists.find((artist) => artist.id === id);
     if (favoritesArtist) {
       this.favsService.deleteArtist(id);
     }
-    return { deleted: true };
   }
 
   private updateAlbums(artistId: string) {

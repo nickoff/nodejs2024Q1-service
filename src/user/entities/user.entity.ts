@@ -30,7 +30,15 @@ export class User {
   updatedAt: number;
 
   getUser() {
-    const { password: _, ...result } = this;
+    const { id, login, version, createdAt, updatedAt } = this;
+    const result = {
+      id,
+      login,
+      version,
+      createdAt: Number(createdAt),
+      updatedAt: Number(updatedAt),
+    };
+
     return result;
   }
 }
