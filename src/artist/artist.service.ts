@@ -17,7 +17,6 @@ export class ArtistService {
     private artistsRepository: Repository<Artist>,
     private readonly albumService: AlbumService,
     private readonly trackService: TrackService,
-    private readonly databaseService: DatabaseService,
     private readonly favsService: FavsService,
   ) {}
   async create(createArtistDto: CreateArtistDto) {
