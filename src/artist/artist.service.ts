@@ -2,20 +2,20 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate, v4 as uuid4 } from 'uuid';
-import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
-import { DatabaseService } from '../database/database.service';
 import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Artist } from './entities/artist.entity';
+import { Album } from '../album/entities/album.entity';
 
 @Injectable()
 export class ArtistService {
   constructor(
     @InjectRepository(Artist)
     private artistsRepository: Repository<Artist>,
-    private readonly albumService: AlbumService,
+    @InjectRepository(Album)
+    private albumsRepository: Repository<Album>,
     private readonly trackService: TrackService,
     private readonly favsService: FavsService,
   ) {}
@@ -95,18 +95,21 @@ export class ArtistService {
     }
   }
 
-  private updateAlbums(artistId: string) {
-    const albumIds = this.albumService
-      .findAll()
-      .filter((album) => album.artistId === artistId)
-      .map((album) => album.id);
-    albumIds.forEach((albumId) => {
-      const album = this.albumService.findOne(albumId);
-      this.albumService.update(albumId, {
-        ...album,
-        artistId: null,
-      });
+  private async updateAlbums(artistId: string) {
+    const albums = await this.albumsRepository.find({
+      where: {
+        artistId,
+      },
     });
+
+    if (!albums) return;
+
+    await Promise.all(
+      albums.map((album) => {
+        album.artistId = null;
+        return this.albumsRepository.save(album);
+      }),
+    );
   }
 
   private updateTracks(artistId: string) {

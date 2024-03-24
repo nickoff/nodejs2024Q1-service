@@ -2,10 +2,7 @@ import * as dotenv from 'dotenv';
 import { User } from '../user/entities/user.entity';
 import { DataSourceOptions } from 'typeorm';
 import { Artist } from '../artist/entities/artist.entity';
-import { Track } from '../track/entities/track.entity';
 import { Album } from '../album/entities/album.entity';
-import { Favorites } from '../favs/entities/favs.entity';
-
 dotenv.config();
 
 export const ormConfig: DataSourceOptions = {
@@ -15,6 +12,6 @@ export const ormConfig: DataSourceOptions = {
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  entities: [User, Artist, Track, Album],
+  entities: [User, Artist, Album],
   synchronize: false,
 };
