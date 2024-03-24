@@ -2,12 +2,12 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate, v4 as uuid4 } from 'uuid';
-import { TrackService } from '../track/track.service';
 import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Artist } from './entities/artist.entity';
 import { Album } from '../album/entities/album.entity';
+import { Track } from '../track/entities/track.entity';
 
 @Injectable()
 export class ArtistService {
@@ -16,7 +16,8 @@ export class ArtistService {
     private artistsRepository: Repository<Artist>,
     @InjectRepository(Album)
     private albumsRepository: Repository<Album>,
-    private readonly trackService: TrackService,
+    @InjectRepository(Track)
+    private tracksRepository: Repository<Track>,
     private readonly favsService: FavsService,
   ) {}
   async create(createArtistDto: CreateArtistDto) {
@@ -87,6 +88,7 @@ export class ArtistService {
     const artistId = artist.id;
     this.updateAlbums(artistId);
     this.updateTracks(artistId);
+
     const favoritesArtist = this.favsService
       .findAll()
       .artists.find((artist) => artist.id === id);
@@ -112,17 +114,20 @@ export class ArtistService {
     );
   }
 
-  private updateTracks(artistId: string) {
-    const trackIds = this.trackService
-      .findAll()
-      .filter((track) => track.artistId === artistId)
-      .map((track) => track.id);
-    trackIds.forEach((trackId) => {
-      const track = this.trackService.findOne(trackId);
-      this.trackService.update(trackId, {
-        ...track,
-        artistId: null,
-      });
+  private async updateTracks(artistId: string) {
+    const tracks = await this.tracksRepository.find({
+      where: {
+        artistId,
+      },
     });
+
+    if (!tracks) return;
+
+    await Promise.all(
+      tracks.map((track) => {
+        track.artistId = null;
+        return this.tracksRepository.save(track);
+      }),
+    );
   }
 }

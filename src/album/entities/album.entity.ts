@@ -29,7 +29,7 @@ export class Album {
     type: String || null,
     format: 'uuid',
   })
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'uuid' })
   artistId: string | null;
 
   @ManyToOne(() => Artist, (artist) => artist.id, {

@@ -5,74 +5,87 @@ import { Track } from './entities/track.entity';
 import { validate, v4 as uuid4 } from 'uuid';
 import { DatabaseService } from '../database/database.service';
 import { FavsService } from '../favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TrackService {
-  private readonly tracks = this.databaseService.getTracks();
   constructor(
-    private readonly databaseService: DatabaseService,
+    @InjectRepository(Track)
+    private tracksRepository: Repository<Track>,
     private readonly favsService: FavsService,
   ) {}
-  create(createTrackDto: CreateTrackDto) {
+  async create(createTrackDto: CreateTrackDto) {
     const track: Track = {
       id: uuid4(),
       ...createTrackDto,
     };
 
-    this.tracks.push(track);
-    this.databaseService.updateTracks(this.tracks);
-    return track;
+    const newTrack = this.tracksRepository.create(track);
+    return await this.tracksRepository.save(newTrack);
   }
 
-  findAll() {
-    return this.tracks;
+  async findAll() {
+    return await this.tracksRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const track = this.tracks.find((track) => track.id === id);
+    const track = await this.tracksRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!track) {
       throw new HttpException('Not found track', HttpStatus.NOT_FOUND);
     }
     return track;
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const track = this.tracks.find((track) => track.id === id);
+    const track = await this.tracksRepository.findOne({
+      where: {
+        id,
+      },
+    });
     if (!track) {
       throw new HttpException('Not found track', HttpStatus.NOT_FOUND);
     }
-    const index = this.tracks.findIndex((track) => track.id === id);
-    this.tracks[index] = {
-      ...track,
-      ...updateTrackDto,
-    };
-    this.databaseService.updateTracks(this.tracks);
-    return this.tracks[index];
+
+    track.albumId = updateTrackDto.albumId;
+    track.artistId = updateTrackDto.artistId;
+    track.duration = updateTrackDto.duration;
+    track.name = updateTrackDto.name;
+
+    return await this.tracksRepository.save(track);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const track = this.tracks.find((track) => track.id === id);
+    const track = await this.tracksRepository.findOne({
+      where: {
+        id,
+      },
+    });
     if (!track) {
       throw new HttpException('Not found track', HttpStatus.NOT_FOUND);
     }
-    const index = this.tracks.findIndex((track) => track.id === id);
-    this.tracks.splice(index, 1);
-    this.databaseService.updateTracks(this.tracks);
+
     const favoritesTrack = this.favsService
       .findAll()
       .tracks.find((track) => track.id === id);
     if (favoritesTrack) {
       this.favsService.deleteTrack(id);
     }
-    return { deleted: true };
+
+    await this.tracksRepository.delete(id);
   }
 }

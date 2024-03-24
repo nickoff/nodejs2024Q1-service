@@ -3,17 +3,18 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
-import { TrackService } from '../track/track.service';
 import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Track } from '../track/entities/track.entity';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @InjectRepository(Album)
     private albumsRepository: Repository<Album>,
-    private readonly trackService: TrackService,
+    @InjectRepository(Track)
+    private tracksRepository: Repository<Track>,
     private readonly favsService: FavsService,
   ) {}
   async create(createAlbumDto: CreateAlbumDto) {
@@ -80,6 +81,7 @@ export class AlbumService {
 
     const albumId = album.id;
     this.updateTracks(albumId);
+
     const favoritesAlbum = this.favsService
       .findAll()
       .albums.find((album) => album.id === id);
@@ -90,17 +92,20 @@ export class AlbumService {
     await this.albumsRepository.delete(id);
   }
 
-  private updateTracks(albumId: string) {
-    const trackIds = this.trackService
-      .findAll()
-      .filter((track) => track.albumId === albumId)
-      .map((track) => track.id);
-    trackIds.forEach((trackId) => {
-      const track = this.trackService.findOne(trackId);
-      this.trackService.update(trackId, {
-        ...track,
-        albumId: null,
-      });
+  private async updateTracks(albumId: string) {
+    const tracks = await this.tracksRepository.find({
+      where: {
+        albumId,
+      },
     });
+
+    if (!tracks) return;
+
+    await Promise.all(
+      tracks.map((track) => {
+        track.albumId = null;
+        return this.tracksRepository.save(track);
+      }),
+    );
   }
 }
