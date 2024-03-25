@@ -10,7 +10,7 @@ volumes:
 services:
   postgres:
     container_name: hls-postgres
-    image: nickoff/hls-postgres
+    image: mikalai4/hls-postgres
     build:
       context: ./database
       dockerfile: Dockerfile
@@ -32,7 +32,7 @@ services:
 
   app:
     container_name: hls-api-service
-    image: nickoff/hls-api
+    image: mikalai4/hls-api
     build:
       context: .
       dockerfile: Dockerfile
