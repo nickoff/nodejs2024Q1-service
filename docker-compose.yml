@@ -1,0 +1,49 @@
+version: '3.8'
+
+networks:
+  net-hls:
+    driver: bridge
+
+volumes:
+  database-postgres:
+
+services:
+  postgres:
+    container_name: hls-postgres
+    image: mikalai4/hls-postgres
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+    volumes:
+      - database-postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - net-hls
+    command: 
+      - postgres
+
+  app:
+    container_name: hls-api-service
+    image: mikalai4/hls-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - net-hls
+    depends_on:
+      - postgres
+    volumes:
+      - ./src:/app/src

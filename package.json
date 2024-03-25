@@ -19,7 +19,13 @@
     "test:refresh": "cross-env TEST_MODE=auth jest --testPathPattern refresh.e2e.spec.ts --noStackTrace --runInBand",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "migration:generate": "ts-node ./node_modules/typeorm/cli.js migration:generate ./migrations/data -d ./src/config/migration.config.ts",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d ./src/config/migration.config.ts",
+    "start:service": "npm run migration:generate && npm run migration:run && npm run start:dev",
+    "docker:up": "docker compose up -d",
+    "docker:scout-app": "docker scout cves mikalai4/hls-api:latest",
+    "docker:scout-db": "docker scout cves mikalai4/hls-postgres:latest"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.3",
@@ -29,14 +35,17 @@
     "@nestjs/mapped-types": "^1.0.1",
     "@nestjs/platform-express": "^10.3.3",
     "@nestjs/swagger": "^7.3.0",
+    "@nestjs/typeorm": "^10.0.2",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "dotenv": "^16.0.1",
     "http-status-codes": "^2.2.0",
+    "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
+    "typeorm": "^0.3.20",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
