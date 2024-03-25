@@ -82,13 +82,6 @@ export class AlbumService {
     const albumId = album.id;
     this.updateTracks(albumId);
 
-    const favoritesAlbum = this.favsService
-      .findAll()
-      .albums.find((album) => album.id === id);
-    if (favoritesAlbum) {
-      this.favsService.deleteAlbum(id);
-    }
-
     await this.albumsRepository.delete(id);
   }
 

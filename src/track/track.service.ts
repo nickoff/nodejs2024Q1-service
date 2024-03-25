@@ -3,7 +3,6 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { Track } from './entities/track.entity';
 import { validate, v4 as uuid4 } from 'uuid';
-import { DatabaseService } from '../database/database.service';
 import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,7 +12,6 @@ export class TrackService {
   constructor(
     @InjectRepository(Track)
     private tracksRepository: Repository<Track>,
-    private readonly favsService: FavsService,
   ) {}
   async create(createTrackDto: CreateTrackDto) {
     const track: Track = {
@@ -78,14 +76,6 @@ export class TrackService {
     if (!track) {
       throw new HttpException('Not found track', HttpStatus.NOT_FOUND);
     }
-
-    const favoritesTrack = this.favsService
-      .findAll()
-      .tracks.find((track) => track.id === id);
-    if (favoritesTrack) {
-      this.favsService.deleteTrack(id);
-    }
-
     await this.tracksRepository.delete(id);
   }
 }

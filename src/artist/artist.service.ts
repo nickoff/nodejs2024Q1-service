@@ -88,13 +88,6 @@ export class ArtistService {
     const artistId = artist.id;
     this.updateAlbums(artistId);
     this.updateTracks(artistId);
-
-    const favoritesArtist = this.favsService
-      .findAll()
-      .artists.find((artist) => artist.id === id);
-    if (favoritesArtist) {
-      this.favsService.deleteArtist(id);
-    }
   }
 
   private async updateAlbums(artistId: string) {
