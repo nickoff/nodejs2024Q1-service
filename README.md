@@ -4,11 +4,14 @@
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker [Dowload & Install Docker](https://www.docker.com/get-started/)
 
 ## Downloading
 
 ```
 git clone https://github.com/nickoff/nodejs2024Q1-service.git
+
+cd ./nodejs2024Q1-service
 ```
 
 ## Installing NPM modules
@@ -22,12 +25,35 @@ npm install --legacy-peer-deps
 Create an ```.env``` file based on the ```.env.example``` file (PORT=4000)
 
 ```
-npm start
+npm run docker:up
 ```
-
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
+
+
+## Testing app
+
+After application running open new terminal and enter:
+
+To run all tests
+
+```
+npm run test
+```
+
+To run only one of all test suites
+
+```
+npm run test -- <path to suite>
+```
+## Testing image for vulnerabilities
+
+```
+npm run docker:scout-app
+
+npm run docker:scout-db
+```
 
 ## Endpoints
 
@@ -80,21 +106,6 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
  * `DELETE /favs/artist/:id` - delete artist from favorites
 
 
-## Testing
-
-After application running open new terminal and enter:
-
-To run all tests
-
-```
-npm run test
-```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
 
 ### Auto-fix and format
 
