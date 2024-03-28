@@ -3,7 +3,6 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
-import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Track } from '../track/entities/track.entity';
@@ -15,7 +14,6 @@ export class AlbumService {
     private albumsRepository: Repository<Album>,
     @InjectRepository(Track)
     private tracksRepository: Repository<Track>,
-    private readonly favsService: FavsService,
   ) {}
   async create(createAlbumDto: CreateAlbumDto) {
     const album: Album = {

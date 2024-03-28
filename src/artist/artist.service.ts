@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { validate, v4 as uuid4 } from 'uuid';
-import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Artist } from './entities/artist.entity';
@@ -18,7 +17,6 @@ export class ArtistService {
     private albumsRepository: Repository<Album>,
     @InjectRepository(Track)
     private tracksRepository: Repository<Track>,
-    private readonly favsService: FavsService,
   ) {}
   async create(createArtistDto: CreateArtistDto) {
     const artist = {

@@ -5,7 +5,6 @@ import { TrackModule } from './track/track.module';
 import { ArtistModule } from './artist/artist.module';
 import { AlbumModule } from './album/album.module';
 import { FavsModule } from './favs/favs.module';
-import { DatabaseModule } from './database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/ormconfig';
 
@@ -18,7 +17,6 @@ import { ormConfig } from './config/ormconfig';
     ArtistModule,
     AlbumModule,
     FavsModule,
-    DatabaseModule,
   ],
 })
 export class AppModule {}

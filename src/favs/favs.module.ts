@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { FavsService } from './favs.service';
 import { FavsController } from './favs.controller';
-import { DatabaseModule } from '../database/database.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Album } from '../album/entities/album.entity';
 import { Artist } from '../artist/entities/artist.entity';

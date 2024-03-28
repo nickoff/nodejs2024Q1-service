@@ -8,7 +8,7 @@ import { FavsModule } from '../favs/favs.module';
 import { Track } from '../track/entities/track.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Album, Artist, Track]), FavsModule],
+  imports: [TypeOrmModule.forFeature([Album, Artist, Track])],
   controllers: [AlbumController],
   providers: [AlbumService],
   exports: [AlbumService],
