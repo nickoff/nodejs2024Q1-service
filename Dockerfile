@@ -9,4 +9,7 @@ RUN npm cache clean --force
 
 COPY . .
 
-CMD [ "npm", "run", "start:service" ]
+COPY init.sh .
+RUN chmod +x init.sh
+
+CMD [ "/bin/sh", "-c", "./init.sh" ]
