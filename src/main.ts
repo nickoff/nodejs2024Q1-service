@@ -12,6 +12,7 @@ async function bootstrap() {
     .setTitle('The Home Library Service')
     .setDescription('The home music library API description')
     .setVersion('1.0')
+    .addTag('Auth')
     .addTag('Users')
     .addTag('Tracks')
     .addTag('Artists')
