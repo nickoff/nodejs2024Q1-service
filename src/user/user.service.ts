@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -6,6 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { validate, v4 as uuid4 } from 'uuid';
 import { User } from './entities/user.entity';
+import * as dotenv from 'dotenv';
+import * as bcrypt from 'bcrypt';
+
+dotenv.config();
+const salt = Number(process.env.CRYPT_SALT) || 10;
 
 @Injectable()
 export class UserService {
@@ -15,8 +19,10 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const hash = await bcrypt.hash(createUserDto.password, salt);
     const user = {
-      ...createUserDto,
+      login: createUserDto.login,
+      password: hash,
       id: uuid4(),
       version: 1,
       createdAt: Date.now(),
@@ -64,14 +70,21 @@ export class UserService {
       throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
     }
 
-    if (user.password !== updateUserDto.oldPassword) {
+    const isMatch = await bcrypt.compare(
+      updateUserDto.oldPassword,
+      user.password,
+    );
+
+    if (!isMatch) {
       throw new HttpException(
         'Old password is not correct',
         HttpStatus.FORBIDDEN,
       );
     }
 
-    user.password = updateUserDto.newPassword;
+    const newHash = await bcrypt.hash(updateUserDto.newPassword, salt);
+
+    user.password = newHash;
     user.updatedAt = Date.now();
     user.version += 1;
 
