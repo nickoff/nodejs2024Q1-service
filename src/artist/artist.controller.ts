@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -18,9 +19,11 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Artist } from './entities/artist.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Artists')
 @Controller('artist')
+@UseGuards(AuthGuard)
 export class ArtistController {
   constructor(private readonly artistService: ArtistService) {}
 

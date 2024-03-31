@@ -4,11 +4,8 @@ import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
-import { JwtModule } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
 import { TokenModule } from '../token/token.module';
-
-dotenv.config();
+import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), UserModule, TokenModule],

@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
@@ -18,9 +19,11 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Album } from './entities/album.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Albums')
 @Controller('album')
+@UseGuards(AuthGuard)
 export class AlbumController {
   constructor(private readonly albumService: AlbumService) {}
 

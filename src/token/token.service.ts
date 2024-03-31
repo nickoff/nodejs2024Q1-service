@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -36,5 +36,10 @@ export class TokenService {
     };
 
     return await this.jwtService.signAsync(payload, options);
+  }
+
+  async verifyAccessToken(token: string) {
+    const options: JwtVerifyOptions = { secret: this.JWT_SECRET_KEY };
+    return await this.jwtService.verifyAsync(token, options);
   }
 }

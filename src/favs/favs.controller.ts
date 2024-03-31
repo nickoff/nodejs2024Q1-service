@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { FavsService } from './favs.service';
 import {
   ApiOperation,
@@ -10,9 +18,11 @@ import { Favorites } from './entities/favs.entity';
 import { Track } from '../track/entities/track.entity';
 import { Artist } from '../artist/entities/artist.entity';
 import { Album } from '../album/entities/album.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Favs')
 @Controller('favs')
+@UseGuards(AuthGuard)
 export class FavsController {
   constructor(private readonly favsService: FavsService) {}
 

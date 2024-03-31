@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -18,9 +19,11 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Track } from './entities/track.entity';
+import { AuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Tracks')
 @Controller('track')
+@UseGuards(AuthGuard)
 export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
