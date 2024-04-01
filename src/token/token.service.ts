@@ -42,4 +42,12 @@ export class TokenService {
     const options: JwtVerifyOptions = { secret: this.JWT_SECRET_KEY };
     return await this.jwtService.verifyAsync(token, options);
   }
+
+  async verifyRefreshToken(token: string) {
+    const options: JwtVerifyOptions = { secret: this.JWT_SECRET_REFRESH_KEY };
+    const payload = await this.jwtService.verifyAsync(token, options);
+    const accessToken = await this.getAccessToken(payload);
+    const refreshToken = await this.getRefreshToken(payload);
+    return { accessToken, refreshToken };
+  }
 }
