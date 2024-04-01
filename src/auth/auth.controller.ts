@@ -66,6 +66,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @HttpCode(200)
   @ApiOperation({
     summary: 'Refresh user tokens',
   })
@@ -82,7 +83,7 @@ export class AuthController {
     status: 403,
     description: 'Forbidden error. Invalid refresh token.',
   })
-  refresh(@Body() refreshToken: string) {
+  refresh(@Body() refreshToken: { refreshToken: string }) {
     return this.authService.refresh(refreshToken);
   }
 }

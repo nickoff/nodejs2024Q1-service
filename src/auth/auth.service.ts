@@ -46,7 +46,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refresh(refreshToken: string) {
+  async refresh(refreshTokenObj: { refreshToken: string }) {
+    const { refreshToken } = refreshTokenObj;
     const tokens = await this.tokenService.verifyRefreshToken(refreshToken);
     if (!tokens) {
       throw new HttpException('Invalid refresh token', HttpStatus.FORBIDDEN);

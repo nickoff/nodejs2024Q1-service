@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 
@@ -44,10 +44,28 @@ export class TokenService {
   }
 
   async verifyRefreshToken(token: string) {
-    const options: JwtVerifyOptions = { secret: this.JWT_SECRET_REFRESH_KEY };
-    const payload = await this.jwtService.verifyAsync(token, options);
-    const accessToken = await this.getAccessToken(payload);
-    const refreshToken = await this.getRefreshToken(payload);
-    return { accessToken, refreshToken };
+    try {
+      const options: JwtVerifyOptions = { secret: this.JWT_SECRET_REFRESH_KEY };
+      const { userId, login } = await this.jwtService.verifyAsync(
+        token,
+        options,
+      );
+      const accessToken = await this.getAccessToken({ userId, login });
+      const refreshToken = await this.getRefreshToken({ userId, login });
+      return { accessToken, refreshToken };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new HttpException('Token expired', HttpStatus.FORBIDDEN);
+      }
+      if (
+        error.name === 'JsonWebTokenError' &&
+        error.message === 'jwt must be provided'
+      ) {
+        throw new HttpException(
+          'Token must be provided',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+    }
   }
 }
