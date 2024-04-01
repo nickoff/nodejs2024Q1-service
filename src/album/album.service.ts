@@ -3,93 +3,100 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { validate, v4 as uuid4 } from 'uuid';
-import { TrackService } from '../track/track.service';
-import { DatabaseService } from '../database/database.service';
-import { FavsService } from '../favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Track } from '../track/entities/track.entity';
 
 @Injectable()
 export class AlbumService {
-  private readonly albums = this.databaseService.getAlbums();
   constructor(
-    private readonly trackService: TrackService,
-    private readonly databaseService: DatabaseService,
-    private readonly favsService: FavsService,
+    @InjectRepository(Album)
+    private albumsRepository: Repository<Album>,
+    @InjectRepository(Track)
+    private tracksRepository: Repository<Track>,
   ) {}
-  create(createAlbumDto: CreateAlbumDto) {
+  async create(createAlbumDto: CreateAlbumDto) {
     const album: Album = {
       id: uuid4(),
       ...createAlbumDto,
     };
-    this.albums.push(album);
-    this.databaseService.updateAlbums(this.albums);
-    return album;
+    const newAlbum = this.albumsRepository.create(album);
+    return await this.albumsRepository.save(newAlbum);
   }
 
-  findAll() {
-    return this.albums;
+  async findAll() {
+    return await this.albumsRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const album = this.albums.find((album) => album.id === id);
+    const album = await this.albumsRepository.findOne({
+      where: {
+        id,
+      },
+    });
     if (!album) {
       throw new HttpException('Not found album', HttpStatus.NOT_FOUND);
     }
     return album;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
+  async update(id: string, updateAlbumDto: UpdateAlbumDto) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const album = this.albums.find((album) => album.id === id);
+    const album = await this.albumsRepository.findOne({
+      where: {
+        id,
+      },
+    });
     if (!album) {
       throw new HttpException('Not found album', HttpStatus.NOT_FOUND);
     }
-    const index = this.albums.findIndex((album) => album.id === id);
-    this.albums[index] = {
-      ...album,
-      ...updateAlbumDto,
-    };
-    this.databaseService.updateAlbums(this.albums);
-    return this.albums[index];
+
+    album.name = updateAlbumDto.name;
+    album.year = updateAlbumDto.year;
+    album.artistId = updateAlbumDto.artistId;
+
+    return await this.albumsRepository.save(album);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const album = this.albums.find((album) => album.id === id);
+    const album = await this.albumsRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!album) {
       throw new HttpException('Not found album', HttpStatus.NOT_FOUND);
     }
+
     const albumId = album.id;
     this.updateTracks(albumId);
-    const index = this.albums.findIndex((album) => album.id === id);
-    this.albums.splice(index, 1);
-    this.databaseService.updateAlbums(this.albums);
-    const favoritesAlbum = this.favsService
-      .findAll()
-      .albums.find((album) => album.id === id);
-    if (favoritesAlbum) {
-      this.favsService.deleteAlbum(id);
-    }
-    return { deleted: true };
+
+    await this.albumsRepository.delete(id);
   }
 
-  private updateTracks(albumId: string) {
-    const trackIds = this.trackService
-      .findAll()
-      .filter((track) => track.albumId === albumId)
-      .map((track) => track.id);
-    trackIds.forEach((trackId) => {
-      const track = this.trackService.findOne(trackId);
-      this.trackService.update(trackId, {
-        ...track,
-        albumId: null,
-      });
+  private async updateTracks(albumId: string) {
+    const tracks = await this.tracksRepository.find({
+      where: {
+        albumId,
+      },
     });
+
+    if (!tracks) return;
+
+    await Promise.all(
+      tracks.map((track) => {
+        track.albumId = null;
+        return this.tracksRepository.save(track);
+      }),
+    );
   }
 }

@@ -1,84 +1,109 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { validate, v4 as uuid4 } from 'uuid';
-import { DatabaseService } from '../database/database.service';
+import { User } from './entities/user.entity';
+import * as dotenv from 'dotenv';
+import * as bcrypt from 'bcrypt';
+
+dotenv.config();
+const salt = Number(process.env.CRYPT_SALT) || 10;
 
 @Injectable()
 export class UserService {
-  private users = this.databaseService.getUsers();
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
 
-  constructor(private readonly databaseService: DatabaseService) {}
-
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
+    const hash = await bcrypt.hash(createUserDto.password, salt);
     const user = {
-      ...createUserDto,
+      login: createUserDto.login,
+      password: hash,
       id: uuid4(),
       version: 1,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    this.users.push(user);
-    this.databaseService.updateUser(this.users);
-    const { password: _, ...result } = user;
-    return result;
+
+    const createdUser = this.usersRepository.create(user);
+    return (await this.usersRepository.save(createdUser)).getUser();
   }
 
-  findAll() {
-    const usersWithoutPassword = this.users.map(
-      ({ password: _, ...rest }) => rest,
+  async findAll() {
+    const users = await this.usersRepository.find();
+
+    return users.map((user) => user.getUser());
+  }
+
+  async findOne(id: string) {
+    if (validate(id) === false) {
+      throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
+    }
+    const user = await this.usersRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
+    }
+
+    return user.getUser();
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    if (validate(id) === false) {
+      throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
+    }
+    const user = await this.usersRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
+    }
+
+    const isMatch = await bcrypt.compare(
+      updateUserDto.oldPassword,
+      user.password,
     );
-    return usersWithoutPassword;
-  }
 
-  findOne(id: string) {
-    if (validate(id) === false) {
-      throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
-    }
-    const user = this.users.find((user) => user.id === id);
-    if (!user) {
-      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
-    }
-    const { password: _, ...result } = user;
-    return result;
-  }
-
-  update(id: string, updateUserDto: UpdateUserDto) {
-    if (validate(id) === false) {
-      throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
-    }
-    const user = this.users.find((user) => user.id === id);
-    if (!user) {
-      throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
-    }
-    if (user.password !== updateUserDto.oldPassword) {
+    if (!isMatch) {
       throw new HttpException(
         'Old password is not correct',
         HttpStatus.FORBIDDEN,
       );
     }
-    const index = this.users.findIndex((user) => user.id === id);
-    this.users[index].password = updateUserDto.newPassword;
-    this.users[index].updatedAt = Date.now();
-    this.users[index].version += 1;
-    this.databaseService.updateUser(this.users);
-    const { password: _, ...result } = this.users[index];
-    return result;
+
+    const newHash = await bcrypt.hash(updateUserDto.newPassword, salt);
+
+    user.password = newHash;
+    user.updatedAt = Date.now();
+    user.version += 1;
+
+    return (await this.usersRepository.save(user)).getUser();
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (validate(id) === false) {
       throw new HttpException('Id is not valid', HttpStatus.BAD_REQUEST);
     }
-    const user = this.users.find((user) => user.id === id);
+    const user = await this.usersRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!user) {
       throw new HttpException('Not found user', HttpStatus.NOT_FOUND);
     }
-    const index = this.users.findIndex((user) => user.id === id);
-    this.users.splice(index, 1);
-    this.databaseService.updateUser(this.users);
-    return { deleted: true };
+    await this.usersRepository.delete(id);
   }
 }
